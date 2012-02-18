@@ -785,7 +785,10 @@
         DLog(@"%@", self);
         self.connection = [[NSURLConnection alloc] initWithRequest:self.request 
                                                           delegate:self 
-                                                  startImmediately:YES]; 
+                                                  startImmediately:NO];
+		[self.connection scheduleInRunLoop:[NSRunLoop currentRunLoop]
+								   forMode:NSRunLoopCommonModes];
+		[self.connection start];
         
         self.state = MKNetworkOperationStateExecuting;
     }
