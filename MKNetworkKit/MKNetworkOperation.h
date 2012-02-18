@@ -275,6 +275,7 @@ typedef enum {
  */
 @property (nonatomic, assign) NSURLCredentialPersistence credentialPersistence;
 
+#if TARGET_OS_IPHONE
 /*!
  *  @abstract notification that has to be shown when an error occurs and the app is in background
  *  @property localNotification
@@ -299,6 +300,7 @@ typedef enum {
  *  localNotification
  */
 @property (nonatomic, assign) BOOL shouldShowLocalNotificationOnError;
+#endif
 
 /*!
  *  @abstract Add additional header parameters

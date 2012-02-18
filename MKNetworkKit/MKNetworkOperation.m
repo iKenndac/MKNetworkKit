@@ -65,6 +65,7 @@
 
 #if TARGET_OS_IPHONE    
 @property (nonatomic, assign) UIBackgroundTaskIdentifier backgroundTaskId;
+- (void) showLocalNotification;
 #endif
 
 @property (strong, nonatomic) NSError *error;
@@ -77,7 +78,6 @@
 -(BOOL) isCacheable;
 
 -(NSString*) encodedPostDataString;
-- (void) showLocalNotification;
 - (void) endBackgroundTask;
 
 @end
@@ -120,8 +120,10 @@
 @synthesize cachedResponse = _cachedResponse;
 @synthesize cacheHandlingBlock = _cacheHandlingBlock;
 @synthesize credentialPersistence = _credentialPersistence;
+#if TARGET_OS_IPHONE
 @synthesize localNotification = localNotification_;
 @synthesize shouldShowLocalNotificationOnError = shouldShowLocalNotificationOnError_;
+#endif
 
 @synthesize startPosition = _startPosition;
 
@@ -455,7 +457,7 @@
 
 -(void) setUploadStream:(NSInputStream*) inputStream {
     
-#warning Method not tested yet.
+	DLog(@"WARNING: %@ method not tested!", NSStringFromSelector(_cmd));
     self.request.HTTPBodyStream = inputStream;
 }
 
@@ -890,8 +892,9 @@
             
             NSData *certData = [[NSData alloc] initWithContentsOfFile:self.clientCertificate];
             
-#warning method not implemented. Don't use client certicate authentication for now.
-            SecIdentityRef myIdentity;  // ???
+			DLog(@"WARNING: method not implemented. Don't use client certicate authentication for now");
+			
+            SecIdentityRef myIdentity = NULL;  // ???
             
             SecCertificateRef myCert = SecCertificateCreateWithData(NULL, (__bridge CFDataRef)certData);
             SecCertificateRef certArray[1] = { myCert };
@@ -904,7 +907,9 @@
             [challenge.sender useCredential:credential forAuthenticationChallenge:challenge];
         }
         else if (challenge.protectionSpace.authenticationMethod == NSURLAuthenticationMethodServerTrust) {
-#warning method not tested. proceed at your own risk
+
+			DLog(@"WARNING: method not implemented. Don't use server trust authentication for now");
+			
             SecTrustRef serverTrust = [[challenge protectionSpace] serverTrust];
             SecTrustResultType result;
             SecTrustEvaluate(serverTrust, &result);
@@ -1040,7 +1045,7 @@
             NSString *bytesText = [rangeString substringWithRange:NSMakeRange(6, [rangeString length] - 7)];
             self.startPosition = [bytesText integerValue];
             self.downloadedDataSize = self.startPosition;
-            DLog(@"Resuming at %d bytes", self.startPosition);
+            DLog(@"Resuming at %lu bytes", self.startPosition);
         }
     }
     
@@ -1200,6 +1205,8 @@ totalBytesExpectedToWrite:(NSInteger)totalBytesExpectedToWrite {
         responseBlock(self);
 }
 
+#if TARGET_OS_IPHONE
+
 -(void) showLocalNotification {
     
     if(self.localNotification) {
@@ -1215,6 +1222,8 @@ totalBytesExpectedToWrite:(NSInteger)totalBytesExpectedToWrite {
         [[UIApplication sharedApplication] presentLocalNotificationNow:localNotification];
     }
 }
+
+#endif
 
 -(void) operationFailedWithError:(NSError*) error {
     
