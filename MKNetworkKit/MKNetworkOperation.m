@@ -677,7 +677,7 @@
                                      boundary, [key urlEncodedString], [obj urlEncodedString]];
         
         [body appendData:[thisFieldString dataUsingEncoding:[self stringEncoding]]];
-        [body appendData:[@"\r\n" dataUsingEncoding:[self stringEncoding]]];
+        //[body appendData:[@"\r\n" dataUsingEncoding:[self stringEncoding]]];
     }];        
     
     [self.filesToBePosted enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
@@ -692,7 +692,7 @@
         
         [body appendData:[thisFieldString dataUsingEncoding:[self stringEncoding]]];         
         [body appendData: [NSData dataWithContentsOfFile:[thisFile objectForKey:@"filepath"]]];
-        [body appendData:[@"\r\n" dataUsingEncoding:[self stringEncoding]]];
+       // [body appendData:[@"\r\n" dataUsingEncoding:[self stringEncoding]]];
     }];
     
     [self.dataToBePosted enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
@@ -707,7 +707,7 @@
         
         [body appendData:[thisFieldString dataUsingEncoding:[self stringEncoding]]];         
         [body appendData:[thisDataObject objectForKey:@"data"]];
-        [body appendData:[@"\r\n" dataUsingEncoding:[self stringEncoding]]];
+        //[body appendData:[@"\r\n" dataUsingEncoding:[self stringEncoding]]];
     }];
     
     if (postLength >= 1)
@@ -778,10 +778,9 @@
     if(!self.isCancelled) {
         
         if ([self.request.HTTPMethod isEqualToString:@"POST"] || [self.request.HTTPMethod isEqualToString:@"PUT"]) {            
-            
             [self.request setHTTPBody:[self bodyData]];
         }
-        
+		
         DLog(@"%@", self);
         self.connection = [[NSURLConnection alloc] initWithRequest:self.request 
                                                           delegate:self 
