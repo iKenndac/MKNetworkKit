@@ -26,6 +26,9 @@
 #import "MKNetworkOperation.h"
 #import "NSDictionary+RequestEncoding.h"
 #import "NSString+MKNetworkKitAdditions.h"
+#import "NSData+Base64.h"
+#import "NSDate+RFC1123.h"
+#import "MKNetworkKit.h"
 
 
 @interface MKNetworkOperation (/*Private Methods*/)

@@ -25,6 +25,7 @@
 
 #import "NSDictionary+RequestEncoding.h"
 #import "NSString+MKNetworkKitAdditions.h"
+#import "MKNetworkKit.h"
 
 @implementation NSDictionary (RequestEncoding)
 

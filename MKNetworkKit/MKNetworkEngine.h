@@ -24,6 +24,7 @@
 //  THE SOFTWARE.
 
 #import "MKNetworkOperation.h"
+#import "Reachability.h"
 
 /*!
  @header MKNetworkEngine.h
