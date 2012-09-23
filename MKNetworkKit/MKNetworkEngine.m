@@ -321,79 +321,67 @@ static NSOperationQueue *_sharedNetworkQueue;
         [self saveCacheData:cachedData forKey:[operation uniqueIdentifier]]; // bring it back to the in-memory cache
         return cachedData;
     }
-    
+
     return nil;
 }
 
 -(void) enqueueOperation:(MKNetworkOperation*) operation {
-    
+
     [self enqueueOperation:operation forceReload:NO];
 }
 
 -(void) enqueueOperation:(MKNetworkOperation*) operation forceReload:(BOOL) forceReload {
-    // Grab on to the current queue (We need it later)
-    dispatch_queue_t originalQueue = dispatch_get_current_queue();
-    // Jump off the main thread, mainly for disk cache reading purposes
-    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-        [operation setCacheHandler:^(MKNetworkOperation* completedCacheableOperation) {
-            
-            // if this is not called, the request would have been a non cacheable request
-            //completedCacheableOperation.cacheHeaders;
-            NSString *uniqueId = [completedCacheableOperation uniqueIdentifier];
-            [self saveCacheData:[completedCacheableOperation responseData] 
-                         forKey:uniqueId];
-            
-            [self.cacheInvalidationParams setObject:completedCacheableOperation.cacheHeaders forKey:uniqueId];
-        }];
-        
-        __block double expiryTimeInSeconds = 0.0f;    
-        
-        if(!forceReload) {
-            NSData *cachedData = [self cachedDataForOperation:operation];
-            if(cachedData) {
-                dispatch_async(originalQueue, ^{
-                    // Jump back to the original thread here since setCachedData updates the main thread
-                    [operation setCachedData:cachedData];                    
-                });
-                
-                
-                NSString *uniqueId = [operation uniqueIdentifier];
-                NSMutableDictionary *savedCacheHeaders = [self.cacheInvalidationParams objectForKey:uniqueId];
-                // there is a cached version.
-                // this means, the current operation is a "GET"
-                if(savedCacheHeaders) {
-                    NSString *expiresOn = [savedCacheHeaders objectForKey:@"Expires"];
 
-                    dispatch_sync(originalQueue, ^{
-                        NSDate *expiresOnDate = [NSDate dateFromRFC1123:expiresOn];
-                        expiryTimeInSeconds = [expiresOnDate timeIntervalSinceNow];
-                    });
-                    
-                    [operation updateOperationBasedOnPreviousHeaders:savedCacheHeaders];
-                }
-            }
-        }
-        
-        dispatch_async(originalQueue, ^{
-            NSUInteger index = [_sharedNetworkQueue.operations indexOfObject:operation];
-            if(index == NSNotFound) {
-                
-                if(expiryTimeInSeconds <= 0)
-                    [_sharedNetworkQueue addOperation:operation];
-                else if(forceReload)
-                    [_sharedNetworkQueue addOperation:operation];
-                // else don't do anything
-            }
-            else {
-                // This operation is already being processed
-                MKNetworkOperation *queuedOperation = (MKNetworkOperation*) [_sharedNetworkQueue.operations objectAtIndex:index];
-                [queuedOperation updateHandlersFromOperation:operation];
-            }
+	[operation setCacheHandler:^(MKNetworkOperation* completedCacheableOperation) {
 
-            if([self.reachability currentReachabilityStatus] == NotReachable)
-                [self freezeOperations];
-        });
-    });
+		// if this is not called, the request would have been a non cacheable request
+		//completedCacheableOperation.cacheHeaders;
+		NSString *uniqueId = [completedCacheableOperation uniqueIdentifier];
+		[self saveCacheData:[completedCacheableOperation responseData]
+					 forKey:uniqueId];
+
+		[self.cacheInvalidationParams setObject:completedCacheableOperation.cacheHeaders forKey:uniqueId];
+	}];
+
+	__block double expiryTimeInSeconds = 0.0f;
+
+	if(!forceReload) {
+		NSData *cachedData = [self cachedDataForOperation:operation];
+		if(cachedData) {
+			[operation setCachedData:cachedData];
+
+			NSString *uniqueId = [operation uniqueIdentifier];
+			NSMutableDictionary *savedCacheHeaders = [self.cacheInvalidationParams objectForKey:uniqueId];
+			// there is a cached version.
+			// this means, the current operation is a "GET"
+			if(savedCacheHeaders) {
+				NSString *expiresOn = [savedCacheHeaders objectForKey:@"Expires"];
+
+				NSDate *expiresOnDate = [NSDate dateFromRFC1123:expiresOn];
+				expiryTimeInSeconds = [expiresOnDate timeIntervalSinceNow];
+
+				[operation updateOperationBasedOnPreviousHeaders:savedCacheHeaders];
+			}
+		}
+	}
+
+	NSUInteger index = [_sharedNetworkQueue.operations indexOfObject:operation];
+	if(index == NSNotFound) {
+
+		if(expiryTimeInSeconds <= 0)
+			[_sharedNetworkQueue addOperation:operation];
+		else if(forceReload)
+			[_sharedNetworkQueue addOperation:operation];
+		// else don't do anything
+	}
+	else {
+		// This operation is already being processed
+		MKNetworkOperation *queuedOperation = (MKNetworkOperation*) [_sharedNetworkQueue.operations objectAtIndex:index];
+		[queuedOperation updateHandlersFromOperation:operation];
+	}
+
+	if([self.reachability currentReachabilityStatus] == NotReachable)
+		[self freezeOperations];
 }
 
 - (MKNetworkOperation*)imageAtURL:(NSURL *)url onCompletion:(MKNKImageBlock) imageFetchedBlock
@@ -403,17 +391,17 @@ static NSOperationQueue *_sharedNetworkQueue;
     // if imageAtURL is called for loading thumbnails.
     if(![self isCacheEnabled]) DLog(@"imageAtURL:onCompletion: requires caching to be enabled.")
 #endif
-    
+
     if (url == nil) {
         return nil;
     }
-    
+
     MKNetworkOperation *op = [self operationWithURLString:[url absoluteString]];
-    
-    [op 
+
+    [op
      onCompletion:^(MKNetworkOperation *completedOperation)
      {
-         imageFetchedBlock([completedOperation responseImage], 
+         imageFetchedBlock([completedOperation responseImage],
                            url,
                            [completedOperation isCachedResponse]);
          
